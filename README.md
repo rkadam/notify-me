@@ -4,7 +4,6 @@ Bot to notify on Instacart Delivery Time availability.
 [Postman](https://postman.com), [Python](https://python.org), [Twilio](https://twilio.com) and [Mailgun](https://mailgun.com)
 
 ## How to Use this Program
----
 Run this program periodically as a crob job. It will check and notify you via email or text if any local stores listed on Instacart (such as Costco, Safeway, Kroger, Bharat Bazar, CVS) have delivery time windows available so that you can submit orders.
 
 - Provides ability to monitor multiple stores available on Instacart
@@ -26,7 +25,6 @@ You will need a [Mailgun](https://www.mailgun.com/) domain to enable notifcation
     - TODO: Future plan is get list of all stores available in your local area using zip code and only provide those as options.
 
 ## Running the program
----
 ```
 # Get Help to know more about all available options (--store is mandatory. select from available options as mentioned in .env)
 python instacart-delivery-time-alert.py --help
