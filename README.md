@@ -13,7 +13,9 @@ Run this program periodically as a crob job. It will check and notify you via em
 ### Email Notifications
 You will need a [Mailgun](https://www.mailgun.com/) domain to enable notifcation emails.
 ### Text Notifications
-[Twilio](https://www.twilio.com/) account will be needed. For these both services I'm replying on basic tier plan which is free and good enough for our minimum needs.
+[Twilio](https://www.twilio.com/) account will be needed. 
+
+For both of these services (Mailgun & Twilio), I'm replying on basic tier plan which is free and good enough for our minimum needs.
 
 ## Setup
 - We will be using Python 3. It's recommended you use Python Virtual Environment along with [Pyenv](https://realpython.com/intro-to-pyenv/)
