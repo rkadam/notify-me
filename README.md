@@ -1,5 +1,5 @@
 # Notify Me
-Bot to notify on Instacart Delivery Time availability.
+Python Bot to notify on Instacart Delivery Time availability.
 ## Ingredients
 [Postman](https://postman.com), [Python](https://python.org), [Twilio](https://twilio.com) and [Mailgun](https://mailgun.com)
 
