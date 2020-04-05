@@ -40,8 +40,6 @@ python instacart-delivery-time-alert.py --email --text --store costco
 # Cron job to run every 5 minutes
 */5 * * * * /usr/local/bin/python /Users/rkadam/work/pyfun/notify-me/instacart-delivery-time-alert.py --email --text --store total-wine-more 2>&1 >> /Users/rkadam/work/pyfun/instacart-run.log.total-wine-more
 */5 * * * * /usr/local/bin/python /Users/rkadam/work/pyfun/notify-me/instacart-delivery-time-alert.py --email --text --store costco 2>&1 >> /Users/rkadam/work/pyfun/instacart-run.log.costco
-
+```
 ## Limitation
 * You will need to delete lock file for given store (example notification-instacart.lock.costco) if you want to get notification again for your next order.
-
-```
