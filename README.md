@@ -19,7 +19,7 @@ For both of these services (Mailgun & Twilio), I'm replying on basic tier plan w
 
 ## Setup
 - We will be using Python 3. It's recommended you use Python Virtual Environment along with [Pyenv](https://realpython.com/intro-to-pyenv/)
-- Install all needed libraries `python install -r requirements.txt`
+- Install all needed libraries `pip install -r requirements.txt`
 - Configuration
   - Copy example.env as .env file into your home directory.
   - Update each parameter with correct values for your setup. To Find out your Session Cookie info, use [Postman](https://www.postman.com/) App along with Cookies Interceptor for [Chrome](https://support.getpostman.com/hc/en-us/articles/203779012-How-do-I-access-Chrome-s-cookies-in-Postman-s-Chrome-App-)
