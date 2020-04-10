@@ -1,5 +1,5 @@
 # Notify Me
-Python Bot to notify when you can place order on Instacart. -- More details on my blog [Raju Guide](https://raju.guide/index.php/2020/04/05/how-to-get-automated-alerts-on-instacart-delivery-availability-using-postman-python-bot/)
+Python Bot to notify when you can place order on [Instacart](https://instacart.com) -- More details on my blog [Raju Guide](https://raju.guide/index.php/2020/04/05/how-to-get-automated-alerts-on-instacart-delivery-availability-using-postman-python-bot/)
 ## Ingredients
 [Postman](https://postman.com), [Python](https://python.org), [Twilio](https://twilio.com) and [Mailgun](https://mailgun.com)
 
