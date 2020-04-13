@@ -1,3 +1,10 @@
 *.lock
 .env
 *log*
+.ipynb_checkpoints
+.python-version
+instacart-bot-run.log*
+instacart-notification.lock*
+*.code-workspace
+*.ipynb
+.vscode

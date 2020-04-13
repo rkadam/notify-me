@@ -9,27 +9,30 @@ from dotenv import load_dotenv
 from datetime import datetime
 import os
 import sys
+import logging
 
-def send_simple_email(from_, to, subject, message_body):
+# https://documentation.mailgun.com/en/latest/quickstart-sending.html
+def send_simple_email(from_email, to_emails, subject, message_body):
     return requests.post(
         os.getenv('MAILGUN_DOMAIN'),
         auth=("api", os.getenv('MAILGUN_API_KEY')),
-        data={"from": from_,
-            "to": to,
+        data={"from": from_email,
+            "to": to_emails,
             "subject": subject,
             "text": message_body})
 
-def send_simple_text(from_number, to_number, message_body):
-    client = Client(os.getenv('TWILIO_ACCOUNT_SID'), os.getenv('TWILIO_AUTH_TOKEN'))
-    client.messages.create(to=to_number, 
-                    from_= from_number, 
-                    body="-" + message_body )
+def send_simple_text(from_number, to_numbers, message_body):
+    to_numbers_list = [x.strip() for x in to_numbers.split(',') ]
+    for to_number in to_numbers_list:
+        client = Client(os.getenv('TWILIO_ACCOUNT_SID'), os.getenv('TWILIO_AUTH_TOKEN'))
+        client.messages.create( to=to_number, 
+                                from_= from_number, 
+                                body="-" + message_body )
 
 def main():
     print(f"[{datetime.now()}]: --- Checking for Instacart Delivery Time Availability --") 
 
     load_dotenv(override=True)
-
     store_list = os.getenv('INSTACART_STORE_LIST').split(',')
 
     parser = argparse.ArgumentParser()
@@ -57,24 +60,32 @@ def main():
       'Cookie': os.getenv('INSTACART_COOKIE_CONTENT')
     }
 
+    # https://www.pylenin.com/blogs/python-logging-guide/
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - line %(lineno)d - %(message)s'
+    logger = logging.getLogger(__name__)
+    logger.setLevel(os.getenv('INSTACART_LOG_LEVEL'))
+    file_handler = logging.FileHandler(os.getenv('INSTACART_LOG_FILE') + '.' + store)
+    formatter = logging.Formatter(log_format)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
     conn.request("GET", f"/v3/containers/{store}/next_gen/retailer_information/content/delivery?source=web", payload, headers)
     res = conn.getresponse()
     if (res.status == 200):
         data = res.read()
         json_data = json.loads(data.decode("utf-8"))
         api_result = json_data["container"]["modules"][0]["types"][0]
-        #print(api_result)
 
-        # result_types = icon_info,error
+        # Two possible values for api_result = icon_info or error
         # 'error' means no delivery times are available!
         # 'icon_info' means delivery options are listed into second list available in "modules" section
         if api_result == 'error':
             # Do Nothing!
-            print("No Delivery times are available! Let's check again in 5 minutes!")
-            #pprint.pprint(json_data["container"]["modules"][0]['data']['title'])
+            logger.debug(pprint.pformat(json_data["container"]["modules"][0]['data']['title']))
+            logger.error("No Delivery times are available! Let's check again in 5 minutes!")
 
         if api_result == 'icon_info':
-            print('Delivery Time Windows available, Send Alert!')
+            logger.info('Delivery Time Windows available, Send Alert!')
             # We are in luck! Send Alert to Needy folks so that they can place their order right away!
             delivery_days_json = json_data["container"]["modules"][1]['data']['service_options']['service_options']['days']
             delivery_window_details = []
@@ -111,9 +122,9 @@ def main():
                         os.getenv('TWILIO_PHONE_TO'),
                         '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
 
-    print(f"[{datetime.now()}]: --- End of Checking on Instacart Delivery Time Availability --") 
-    print()
-    print()
+    logger.info("-- End of Checking on Instacart Delivery Time Availability --") 
+    logger.info("")
+    logger.info("")
 
 # Reference Implementation: https://github.com/utkuufuk/ping-sm/blob/master/__main__.py
 # https://utkuufuk.com/2020/03/28/grocery-scraping/
