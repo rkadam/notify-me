@@ -1,5 +1,5 @@
 # Notify Me
-Python Bot to notify on Instacart Delivery Time availability.
+Python Bot to notify when you can place order on [Instacart](https://instacart.com) -- More details on my blog [Raju's Guide](https://raju.guide/index.php/2020/04/05/how-to-get-automated-alerts-on-instacart-delivery-availability-using-postman-python-bot/)
 ## Ingredients
 [Postman](https://postman.com), [Python](https://python.org), [Twilio](https://twilio.com) and [Mailgun](https://mailgun.com)
 
@@ -19,7 +19,7 @@ For both of these services (Mailgun & Twilio), I'm replying on basic tier plan w
 
 ## Setup
 - We will be using Python 3. It's recommended you use Python Virtual Environment along with [Pyenv](https://realpython.com/intro-to-pyenv/)
-- Install all needed libraries `python install -r requirements.txt`
+- Install all needed libraries `pip install -r requirements.txt`
 - Configuration
   - Copy example.env as .env file into your home directory.
   - Update each parameter with correct values for your setup. To Find out your Session Cookie info, use [Postman](https://www.postman.com/) App along with Cookies Interceptor for [Chrome](https://support.getpostman.com/hc/en-us/articles/203779012-How-do-I-access-Chrome-s-cookies-in-Postman-s-Chrome-App-)
@@ -40,8 +40,6 @@ python instacart-delivery-time-alert.py --email --text --store costco
 # Cron job to run every 5 minutes
 */5 * * * * /usr/local/bin/python /Users/rkadam/work/pyfun/notify-me/instacart-delivery-time-alert.py --email --text --store total-wine-more 2>&1 >> /Users/rkadam/work/pyfun/instacart-run.log.total-wine-more
 */5 * * * * /usr/local/bin/python /Users/rkadam/work/pyfun/notify-me/instacart-delivery-time-alert.py --email --text --store costco 2>&1 >> /Users/rkadam/work/pyfun/instacart-run.log.costco
-
-## Limitation
-* You will need to delete lock file for given store (example notification-instacart.lock.costco) if you want to get notification again for your next order.
-
 ```
+## Limitation
+* You will need to delete lock file for given store (example notification-instacart.lock.costco located in user home directory) if you want to get notification again for your next order.
