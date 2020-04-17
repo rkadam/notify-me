@@ -23,7 +23,9 @@ For both of these services (Mailgun & Twilio), I'm replying on basic tier plan w
 - Configuration
   - Copy example.env as .env file into your home directory.
   - Update each parameter with correct values for your setup. To Find out your Session Cookie info, use [Postman](https://www.postman.com/) App along with Cookies Interceptor for [Chrome](https://support.getpostman.com/hc/en-us/articles/203779012-How-do-I-access-Chrome-s-cookies-in-Postman-s-Chrome-App-)
-  - Update stores parameter with store names available in your local area. This may be case sensitivie, not sure. 
+  - Update stores parameter with store names available in your local area. This may be case sensitivie, not sure.
+  - example.env is prepopulated store list with costco and cvs store.
+  INSTACART_STORE_LIST=costco,cvs
     - TODO: Future plan is get list of all stores available in your local area using zip code and only provide those as options.
 
 ## Running the program
