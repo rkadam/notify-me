@@ -30,7 +30,7 @@ def send_simple_text(from_number, to_numbers, message_body):
                                 body="-" + message_body )
 
 def main():
-    print(f"[{datetime.now()}]: --- Checking for Instacart Delivery Time Availability --") 
+    print(f"[{datetime.now()}]: --- Checking for Instacart Time Availability --") 
 
     load_dotenv(override=True)
     store_list = os.getenv('INSTACART_STORE_LIST').split(',')
@@ -40,11 +40,14 @@ def main():
                         help='Enable notification emails')
     parser.add_argument('-t', '--text', type=bool, nargs='?', const=True, default=False,
                         help='Enable notification texts')
+    parser.add_argument('-m', '--method', required=True, choices=['pickup', 'delivery'],
+                        help='pickup or delivery')
     parser.add_argument('-s', '--store', required=True, choices=store_list)
     args = parser.parse_args()
 
     store = args.store
-
+    shopping_method = args.method
+    
     # abort if an opening was found previously
     if (args.email or args.text):
         try:
@@ -69,7 +72,29 @@ def main():
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    conn.request("GET", f"/v3/containers/{store}/next_gen/retailer_information/content/delivery?source=web", payload, headers)
+
+    #ensure you are going to the correct store
+    if ( os.getenv(store + "_LOC_ID") and  os.getenv(store + "_ID") ):
+        #TODO: either make the location id a cmd line flag or loop through multi values
+        #      so that you can check multiple locations of the same store
+        payload_loc = {'current_zip_code': os.getenv('MY_ZIP'),
+                       'warehouse_location_id': os.getenv(store + "_LOC_ID"),
+                       'current_retailer_id': os.getenv(store + "_ID")
+        }
+        json_payload_loc = json.dumps(payload_loc)
+        headers_loc = {
+            'Cookie':  os.getenv('INSTACART_COOKIE_CONTENT') + ";",
+            'content-type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        logger.debug(json_payload_loc)
+        logger.info('Setting store location')
+        conn.request("PUT", f"/v3/bundle?source=web", json_payload_loc, headers_loc)
+        res_loc = conn.getresponse()
+        loc_data = res_loc.read()
+        logger.debug(f'Status Code: {res_loc.status}')
+        
+    conn.request("GET", f"/v3/containers/{store}/next_gen/retailer_information/content/{shopping_method}?source=web", payload, headers)
     res = conn.getresponse()
     if (res.status == 200):
         data = res.read()
@@ -77,36 +102,36 @@ def main():
         api_result = json_data["container"]["modules"][0]["types"][0]
 
         # Two possible values for api_result = icon_info or error
-        # 'error' means no delivery times are available!
-        # 'icon_info' means delivery options are listed into second list available in "modules" section
+        # 'error' means no times are available!
+        # 'icon_info' means options are listed into second list available in "modules" section
         if api_result == 'error':
             # Do Nothing!
             logger.debug(pprint.pformat(json_data["container"]["modules"][0]['data']['title']))
-            logger.error("No Delivery times are available! Let's check again in 5 minutes!")
+            logger.error("No " + shopping_method + " times are available! Let's check again in 5 minutes!")
 
         if api_result == 'icon_info':
-            logger.info('Delivery Time Windows available, Send Alert!')
+            logger.info(shopping_method + ' time windows available, Send Alert!')
             # We are in luck! Send Alert to Needy folks so that they can place their order right away!
-            delivery_days_json = json_data["container"]["modules"][1]['data']['service_options']['service_options']['days']
-            delivery_window_details = []
-            for each_delivery_day in delivery_days_json:
-                delivery_window_details.append(each_delivery_day["options"][0]["full_window"])
-
-            #TODO - Send exact day and times available for Delivery Window - <Next Iteration>
-            # Get all available dates from result and send them to end user        
-            #delivery_window_messages = "\n".join(delivery_window_details)
-            #message_body += delivery_window_messages
+            days_json = json_data["container"]["modules"][1]['data']['service_options']['service_options']['days']
+            window_details = []
+            for each_day in days_json:
+                window_details.append(each_day["options"][0]["full_window"])
+            window_messages = "\n".join(window_details)
+            msg_body = '\n' + os.getenv('MESSAGE_INSTACART_ALERT_PART_1') + store + os.getenv('MESSAGE_INSTACART_ALERT_PART_2') + '\n\n' + window_messages + f'\n\n Message Alert Date Time: {datetime.now()}'
+            logger.info(msg_body)
+            
             if(args.email or args.text):
                 if (args.email):
                     send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
-                                os.getenv('MAILGUN_EMAIL_TO'),
-                                os.getenv('MAILGUN_EMAIL_SUBJECT_INSTACART_DELIVERY_ALERT'),
-                                '\n' + os.getenv('MESSAGE_INSTACART_DELIVERY_ALERT_PART_1') + store + os.getenv('MESSAGE_INSTACART_DELIVERY_ALERT_PART_2') + f'\n\n Message Alert Date Time: {datetime.now()}')
+                                    os.getenv('MAILGUN_EMAIL_TO'),
+                                    os.getenv('MAILGUN_EMAIL_SUBJECT_INSTACART_ALERT'),
+                                    msg_body)
 
                 if (args.text):
-                    send_simple_text(os.getenv('TWILIO_PHONE_FROM'),
-                                os.getenv('TWILIO_PHONE_TO'),
-                                '\n\n' + os.getenv('MESSAGE_INSTACART_DELIVERY_ALERT_PART_1') + store + os.getenv('MESSAGE_INSTACART_DELIVERY_ALERT_PART_2') + f'\n\n Message Alert Date Time: {datetime.now()}')
+                    for phone_number in os.getenv('TWILIO_PHONE_TO').split(','):
+                        send_simple_text(os.getenv('TWILIO_PHONE_FROM'),
+                                         phone_number,
+                                         msg_body)
                     
                 # create a lock file so that we don't spam ourselves with notification emails
                 with open(os.getenv('INSTACART_NOTIFICATION_LOCK_FILE') + '.' + store, "w") as f:
@@ -118,11 +143,12 @@ def main():
                         os.getenv('MAILGUN_ERROR_EMAIL_SUBJECT'),
                         '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
 
-        send_simple_text(os.getenv('TWILIO_PHONE_FROM'),
-                        os.getenv('TWILIO_PHONE_TO'),
-                        '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
+        for phone_number in os.getenv('TWILIO_PHONE_TO').split(','):        
+            send_simple_text(os.getenv('TWILIO_PHONE_FROM'),
+                             phone_number,
+                             '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
 
-    logger.info("-- End of Checking on Instacart Delivery Time Availability --") 
+    logger.info("-- End of Checking on Instacart Time Availability --") 
     logger.info("")
     logger.info("")
 
