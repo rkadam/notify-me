@@ -122,9 +122,9 @@ def main():
             
             if(args.email or args.text):
                 if (args.email):
-                    for email in os.getenv('MAILGUN_EMAIL_TO').split(','):
+                    for email_addr in os.getenv('MAILGUN_EMAIL_TO').split(','):
                         send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
-                                          email,
+                                          email_addr,
                                           os.getenv('MAILGUN_EMAIL_SUBJECT_INSTACART_ALERT'),
                                           msg_body)
 
@@ -142,9 +142,9 @@ def main():
 
         if(args.email or args.text):
             if (args.email):
-                for email in os.getenv('MAILGUN_EMAIL_TO').split(','):                
+                for email_addr in os.getenv('MAILGUN_EMAIL_TO').split(','):                
                     send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
-                                      email
+                                      email_addr,
                                       os.getenv('MAILGUN_ERROR_EMAIL_SUBJECT'),
                                       '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
 
