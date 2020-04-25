@@ -122,10 +122,11 @@ def main():
             
             if(args.email or args.text):
                 if (args.email):
-                    send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
-                                    os.getenv('MAILGUN_EMAIL_TO'),
-                                    os.getenv('MAILGUN_EMAIL_SUBJECT_INSTACART_ALERT'),
-                                    msg_body)
+                    for email in os.getenv('MAILGUN_EMAIL_TO').split(','):
+                        send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
+                                          email,
+                                          os.getenv('MAILGUN_EMAIL_SUBJECT_INSTACART_ALERT'),
+                                          msg_body)
 
                 if (args.text):
                     for phone_number in os.getenv('TWILIO_PHONE_TO').split(','):
@@ -138,15 +139,20 @@ def main():
                     f.write("")                
     else:
         print(f'Error Code: {res.status}')
-        send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
-                        os.getenv('MAILGUN_EMAIL_TO'),
-                        os.getenv('MAILGUN_ERROR_EMAIL_SUBJECT'),
-                        '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
 
-        for phone_number in os.getenv('TWILIO_PHONE_TO').split(','):        
-            send_simple_text(os.getenv('TWILIO_PHONE_FROM'),
-                             phone_number,
-                             '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
+        if(args.email or args.text):
+            if (args.email):
+                for email in os.getenv('MAILGUN_EMAIL_TO').split(','):                
+                send_simple_email(os.getenv('MAILGUN_EMAIL_FROM'),
+                                  email
+                                  os.getenv('MAILGUN_ERROR_EMAIL_SUBJECT'),
+                                  '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
+
+        if (args.text):
+            for phone_number in os.getenv('TWILIO_PHONE_TO').split(','):        
+                send_simple_text(os.getenv('TWILIO_PHONE_FROM'),
+                                 phone_number,
+                                 '\n' + os.getenv('MESSAGE_ERROR') + f'\n Error Code: {res.status}')
 
     logger.info("-- End of Checking on Instacart Time Availability --") 
     logger.info("")
